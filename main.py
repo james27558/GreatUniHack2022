@@ -7,6 +7,8 @@ class Rubbish:
         self.x_pos = x_pos
         self.y_pos = y_pos
 
+        self.scale = scale
+
         self.image_path = image_path
         # These will be set in: __init__ for self.image and in draw() for self.bounding_box
         self.image = None
@@ -15,7 +17,7 @@ class Rubbish:
         # Load the image and store it into self.image if an image was given
         if image_path != "":
             self.image = pygame.image.load(image_path)
-            self.image = pygame.transform.scale(self.image, (50, 50))
+            self.image = pygame.transform.scale(self.image, (35 * self.scale, 50 * self.scale))
 
             self.bounding_box = None
 
@@ -42,6 +44,71 @@ class Rubbish:
             return pygame.Rect(self.x_pos - self.circle_radius, self.y_pos - self.circle_radius, self.circle_radius * 2,
                                self.circle_radius * 2)
 
+class Bin:
+    def __init__(self, x_pos, y_pos, screen, type, image_path, scale=1.0, bin_type_image_path=""):
+        self.screen = screen
+        self.x_pos = x_pos
+        self.y_pos = y_pos
+
+        self.type = type
+        self.scale = scale
+
+        self.image_path = image_path
+        self.image = pygame.image.load(self.image_path)
+        self.image = pygame.transform.scale(self.image, (100 * self.scale, 100 * self.scale))
+
+        self.bin_type_image_path = bin_type_image_path
+        self.bin_type_image = None
+
+        # Load the bin type image and store it if an image was given
+        if self.bin_type_image_path != "":
+            self.bin_type_image = pygame.image.load(self.bin_type_image_path)
+            self.bin_type_image = pygame.transform.scale(self.bin_type_image, (35 * self.scale, 50 * self.scale))
+
+        self.bounding_box = None
+
+    def draw(self):
+        self.bounding_box = self.screen.blit(self.image, (self.x_pos, self.y_pos))
+
+        if self.bin_type_image is not None:
+            center_pos = self.bounding_box.center
+            bin_image_dimensions = self.bin_type_image.get_size()
+            self.screen.blit(self.bin_type_image, (center_pos[0] - (bin_image_dimensions[0]/2), center_pos[0] - (
+                    bin_image_dimensions[1]/2)))
+
+    def get_rect(self):
+        """
+        Gets the bounding rectangle of the bin, mirrors the get_rect method of pygame.Surface's get_rect()
+        :return:
+        """
+        if self.image is not None:
+            return self.bounding_box
+
+    def check_collision(self, bounding_box):
+        if bounding_box is None:
+            return False
+        else:
+            return self.bounding_box.colliderect(bounding_box)
+
+class Score:
+    def __init__(self, x_pos, y_pos):
+        self.x_pos = x_pos
+        self.y_pos = y_pos
+
+        self.font = pygame.font.SysFont(None, 36)
+
+        self.score = 0
+
+    def incrementScore(self):
+        self.score += 1
+
+    def decrementScore(self):
+        self.score -= 1
+
+    def draw(self):
+        img = self.font.render("Score: {}".format(self.score), True, (0, 0, 0))
+        screen.blit(img, (self.x_pos, self.y_pos))
+
 
 pygame.init()
 
@@ -54,11 +121,16 @@ currently_dragging = False
 obj_being_dragged = None
 
 all_rubbish = [Rubbish(screen, 100, 100, 0, 1, image_path="bottle.png"),
+               Rubbish(screen, 100, 200, 1, 1, image_path="bottle.png"),
                Rubbish(screen, 300, 250, 0, 1),
                Rubbish(screen, 250, 300, 0, 1)]
 
+all_bins = [Bin(300,300,screen, 0, "bin.png", bin_type_image_path="bottle.png")]
+
 # Variables used for dragging rubbish
 offset_x, offset_y = 0, 0
+
+score = Score(0,0)
 
 while running:
     # Did the user click the window close button?
@@ -105,6 +177,34 @@ while running:
     # Draw all rubbish
     for rubbish in all_rubbish:
         rubbish.draw()
+
+    # Draw all bins
+    for bin in all_bins:
+        bin.draw()
+
+    # Draw the score
+    score.draw()
+
+    # Check if any rubbish is colliding with any bin, if so, destroy it and change the score
+    for bin in all_bins:
+        rubbish_index_to_delete = -1
+
+        # Iterate through the rubbish and check if any collide with this bin
+        for rubbish_index, rubbish in enumerate(all_rubbish):
+            if bin.check_collision(rubbish.bounding_box):
+                rubbish_index_to_delete = rubbish_index
+
+                # Change the score according depending on whether the rubbish is in the correct bin
+                if bin.type == rubbish.type:
+                    score.incrementScore()
+                else:
+                    score.decrementScore()
+
+                break
+
+        # If a piece of rubbish does then destroy it
+        if rubbish_index_to_delete != -1:
+            del all_rubbish[rubbish_index_to_delete]
 
     # Display it to the screen
     pygame.display.flip()
