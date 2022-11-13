@@ -47,7 +47,7 @@ class Player:
         self.color = (250, 120, 60)
         self.velX, self.velY = 0, 0
         self.left_pressed, self.right_pressed, self.up_pressed, self.down_pressed = False, False, False, False
-        self.speed = 4
+        self.speed = 2
         self.current_image = facingRight  # temp
 
         self.bounding_box = None
@@ -91,17 +91,17 @@ class Player:
         if self.down_pressed and not self.up_pressed:
             self.velY = self.speed
         if self.up_pressed and self.left_pressed:
-            self.velY -= (self.speed / 10)
-            self.velX -= (self.speed / 10)
+            self.velY -= (self.speed / 5)
+            self.velX -= (self.speed / 5)
         if self.up_pressed and self.right_pressed:
-            self.velY -= (self.speed / 10)
-            self.velX = (self.speed / 10)
+            self.velY -= (self.speed / 4)
+            self.velX = (self.speed / 4)
         if self.down_pressed and self.left_pressed:
             self.velY = (self.speed / 6)
             self.velX -= (self.speed / 6)
         if self.down_pressed and self.right_pressed:
-            self.velY = (self.speed / 4)
-            self.velX = (self.speed / 4)
+            self.velY = (self.speed / 2)
+            self.velX = (self.speed / 2)
 
         self.x += self.velX
         self.y += self.velY
