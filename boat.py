@@ -4,6 +4,9 @@
 import pygame
 import math
 import sys
+import random as rand
+
+from main import Rubbish, Score
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -47,6 +50,8 @@ class Player:
         self.speed = 4
         self.current_image = facingRight  # temp
 
+        self.bounding_box = None
+
     # Draws the boat and controls the image loaded when facing movement direction
     def draw(self, screen):
         # pygame.draw.rect(screen, self.color, self.rect)
@@ -54,32 +59,24 @@ class Player:
 
         if self.left_pressed and not (self.up_pressed or self.down_pressed):
             self.current_image = facingLeft
-            screen.blit(self.current_image, (self.x, self.y))
         elif self.up_pressed and not (self.right_pressed or self.left_pressed):
             self.current_image = facingUp
-            screen.blit(self.current_image, (self.x, self.y))
         elif self.right_pressed and not (self.up_pressed or self.down_pressed):
             self.current_image = facingRight
-            screen.blit(self.current_image, (self.x, self.y))
         elif self.down_pressed and not (self.right_pressed or self.left_pressed):
             self.current_image = facingDown
-            screen.blit(self.current_image, (self.x, self.y))
-            screen.blit(self.current_image, (self.x, self.y))
         elif self.up_pressed and self.right_pressed:
             self.current_image = facingUR
-            screen.blit(self.current_image, (self.x, self.y))
         elif self.up_pressed and self.left_pressed:
             self.current_image = facingUL
-            screen.blit(self.current_image, (self.x, self.y))
         elif self.down_pressed and self.right_pressed:
             self.current_image = facingDR
-            screen.blit(self.current_image, (self.x, self.y))
         elif self.down_pressed and self.left_pressed:
             self.current_image = facingDL
-            screen.blit(self.current_image, (self.x, self.y))
-        else:
-            screen.blit(self.current_image, (self.x, self.y))
-        pygame.display.update()
+
+        # Draw the boat to the screen and store its bounding_box
+        self.bounding_box = screen.blit(self.current_image, (self.x, self.y))
+
 
     def update(self):
 
@@ -125,6 +122,30 @@ class Player:
 # Player Initialization
 player = Player(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2)
 
+# Generate and keep track of Rubbish
+all_rubbish = []
+for x in range(rand.randint(15, 20)):
+    random_type_number = rand.randint(0, 2)
+
+    random_type_image_path = ""
+    image_scale = 0.8
+    if random_type_number == 0:
+        random_type_image_path = "bottle.png"
+    if random_type_number == 1:
+        random_type_image_path = "glass bottle.png"
+        # image_scale = 0.8
+    if random_type_number == 2:
+        random_type_image_path = "general waste face mask.png"
+        image_scale = 1
+
+    all_rubbish.append(Rubbish(screen, rand.randint(0, SCREEN_WIDTH - 50), rand.randint(0, SCREEN_HEIGHT - 50),
+                               random_type_number,
+                               image_scale,
+                               image_path=random_type_image_path))
+
+# Keep track of the score
+score = Score(screen, 0, 0)
+
 # Run until the user asks to quit
 run = True
 while run:
@@ -132,7 +153,6 @@ while run:
     # Draws the scrolling background
     for i in range(0, tiles):
         screen.blit(bg, (i * bg_width + scroll, 0))
-        pygame.display.flip()
 
     # Scrolls the background
     scroll -= 2
@@ -167,6 +187,25 @@ while run:
 
     # Draws the player(boat)
     player.draw(screen)
+
+    for rubbish in all_rubbish:
+        rubbish.draw()
+
+    #Iterate through the rubbish and check if any collide with the boat
+    rubbish_index_to_delete = -1
+    for rubbish_index, rubbish in enumerate(all_rubbish):
+        # Check collision with the boat
+        if player.bounding_box.colliderect(rubbish.bounding_box):
+            rubbish_index_to_delete = rubbish_index
+
+            score.incrementScore()
+
+    # If a piece of rubbish does then destroy it
+    if rubbish_index_to_delete != -1:
+        del all_rubbish[rubbish_index_to_delete]
+
+    # Draw the score to the screen
+    score.draw()
 
     # Update the position of the boat
     player.update()
