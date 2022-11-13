@@ -2,14 +2,19 @@ import pygame
 import sys
 from pygame.locals import *
 from main import Rubbish
+from main import Bin
+from main import Score
 import random
 
+WIDTH = 720
+HEIGHT = 550
 
 class River():
     def __init__(self, screen):
         self.screen = screen
         self.rubbish_list = []
-        self.bin = RiverBin(screen, 320, 550, "bin.png")
+        self.bin_list = []
+        self.score = Score(screen, 0, 0)
 
         self.background = pygame.image.load("river.png")
         self.background = pygame.transform.scale(self.background, (720, 640))
@@ -21,7 +26,21 @@ class River():
 
     # Create rubbish and append to list
     def create_rubbish(self):
-        self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 0, 1, image_path="bottle.png"), random.randint(1, 3)])
+        rubbish_type = random.randint(0, 3)
+
+        if rubbish_type == 0:
+            self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 0, 1, image_path="bottle.png"), random.uniform(1,2)])
+        elif rubbish_type == 1:
+            self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 0, 1, image_path="can.png"), random.uniform(1,2)])
+        elif rubbish_type == 2:
+            self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 1, 1.5, image_path="foodbox.png"), random.uniform(1,2)])
+        elif rubbish_type == 3:
+            self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 1, 1, image_path="leaves.png"), random.uniform(1,2)])
+
+    def create_bin(self):
+        for i in range(2):
+            self.bin_list.append((Bin(150 + (75 * i), 550, self.screen, i, "bin.png", scale=0.75)))
+
 
     # Draw falling rubbish
     def falling_rubbish(self):
@@ -31,7 +50,7 @@ class River():
             rubbish.y_pos += speed
 
             # Delete if it is pass the screen
-            if rubbish.y_pos > 600:
+            if rubbish.y_pos > 530:
                 del self.rubbish_list[index]
                 index -= 1
 
@@ -39,41 +58,18 @@ class River():
             rubbish.draw()
 
             # if rubbish.y_pos >= self.bin.y_pos:
-            #     if rubbish.x_pos < self.bin.y_pos:
+            #     if rubbish.x_pos <
 
     # Draw the bin
     def draw_bin(self):
-        self.bin.draw()
+        for bin in self.bin_list:
+            bin.draw()
 
-
-
-class RiverBin():
-    def __init__(self, screen, x_pos, y_pos, image_path=""):
-        self.screen = screen
-        self.x_pos = x_pos
-        self.y_pos = y_pos
-
-        self.image_path = image_path
-        self.image = None
-
-        # Load the image and store it into self.image if an image was given
-        if image_path != "":
-            self.image = pygame.image.load(image_path)
-            self.image = pygame.transform.scale(self.image, (50, 50))
-
-    def draw(self):
-        if self.image is not None:
-            self.screen.blit(self.image, (self.x_pos, self.y_pos))
-        else:
-            pygame.draw.circle(self.screen, (0, 0, 255), (self.x_pos, self.y_pos), 10)
-
-    # Move the bin left or right
     def move(self, pos):
-        self.x_pos += pos
-        if self.x_pos < 100 or self.x_pos > 520:
-            self.x_pos -= pos
-
-
+        for index, bin in enumerate(self.bin_list):
+            bin.x_pos += pos
+            if bin.x_pos < 0 + (index) * 75 or bin.x_pos > 720 - (2 - index) * 75:
+                bin.x_pos -= pos
 
 
 
@@ -83,6 +79,7 @@ def main():
     clock = pygame.time.Clock()
 
     river = River(screen)
+    river.create_bin()
 
     while True:
         river.draw_background()
@@ -97,16 +94,39 @@ def main():
         keys_pressed = pygame.key.get_pressed()
 
         if keys_pressed[pygame.K_LEFT]:
-            river.bin.move(-4)
+            river.move(-4)
         if keys_pressed[pygame.K_RIGHT]:
-            river.bin.move(4)
+            river.move(4)
 
-        # Create rubbish randomly
-        if random.randint(0, 50) == 0:
-            river.create_rubbish()
+        if len(river.rubbish_list) < 10:
+            if random.randint(0, 20) == 0:
+                river.create_rubbish()
 
         river.falling_rubbish()
         river.draw_bin()
+        river.score.draw()
+
+        for bin in river.bin_list:
+            rubbish_index_to_delete = -1
+
+            # Iterate through the rubbish and check if any collide with this bin
+            for rubbish_index, rubbish in enumerate(river.rubbish_list):
+                rubbish = rubbish[0]
+
+                if bin.check_collision(rubbish.bounding_box):
+                    rubbish_index_to_delete = rubbish_index
+
+                    # Change the score according depending on whether the rubbish is in the correct bin
+                    if bin.type == rubbish.type:
+                        river.score.incrementScore()
+                    else:
+                        river.score.decrementScore()
+
+                    break
+
+            # If a piece of rubbish does then destroy it
+            if rubbish_index_to_delete != -1:
+                del river.rubbish_list[rubbish_index_to_delete]
 
         pygame.display.flip()
         clock.tick(60)
