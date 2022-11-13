@@ -6,9 +6,6 @@ from main import Bin
 from main import Score
 import random
 
-WIDTH = 720
-HEIGHT = 550
-
 class River():
     def __init__(self, screen):
         self.screen = screen
@@ -70,65 +67,3 @@ class River():
             bin.x_pos += pos
             if bin.x_pos < 0 + (index) * 75 or bin.x_pos > 720 - (2 - index) * 75:
                 bin.x_pos -= pos
-
-
-
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((720, 640))
-    clock = pygame.time.Clock()
-
-    river = River(screen)
-    river.create_bin()
-
-    while True:
-        river.draw_background()
-
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-
-
-        # Move bin if arrow keys are pressed
-        keys_pressed = pygame.key.get_pressed()
-
-        if keys_pressed[pygame.K_LEFT]:
-            river.move(-4)
-        if keys_pressed[pygame.K_RIGHT]:
-            river.move(4)
-
-        if len(river.rubbish_list) < 10:
-            if random.randint(0, 20) == 0:
-                river.create_rubbish()
-
-        river.falling_rubbish()
-        river.draw_bin()
-        river.score.draw()
-
-        for bin in river.bin_list:
-            rubbish_index_to_delete = -1
-
-            # Iterate through the rubbish and check if any collide with this bin
-            for rubbish_index, rubbish in enumerate(river.rubbish_list):
-                rubbish = rubbish[0]
-
-                if bin.check_collision(rubbish.bounding_box):
-                    rubbish_index_to_delete = rubbish_index
-
-                    # Change the score according depending on whether the rubbish is in the correct bin
-                    if bin.type == rubbish.type:
-                        river.score.incrementScore()
-                    else:
-                        river.score.decrementScore()
-
-                    break
-
-            # If a piece of rubbish does then destroy it
-            if rubbish_index_to_delete != -1:
-                del river.rubbish_list[rubbish_index_to_delete]
-
-        pygame.display.flip()
-        clock.tick(60)
-
-main()
