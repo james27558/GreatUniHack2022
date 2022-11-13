@@ -91,9 +91,11 @@ class Bin:
             return self.bounding_box.colliderect(bounding_box)
 
 class Score:
-    def __init__(self, x_pos, y_pos):
+    def __init__(self, screen, x_pos, y_pos):
         self.x_pos = x_pos
         self.y_pos = y_pos
+
+        self.screen = screen
 
         self.font = pygame.font.SysFont(None, 36)
 
@@ -107,8 +109,7 @@ class Score:
 
     def draw(self):
         img = self.font.render("Score: {}".format(self.score), True, (0, 0, 0))
-        screen.blit(img, (self.x_pos, self.y_pos))
-
+        self.screen.blit(img, (self.x_pos, self.y_pos))
 
 pygame.init()
 
@@ -130,7 +131,7 @@ all_bins = [Bin(300,300,screen, 0, "bin.png", bin_type_image_path="bottle.png")]
 # Variables used for dragging rubbish
 offset_x, offset_y = 0, 0
 
-score = Score(0,0)
+score = Score(screen, 0, 0)
 
 while running:
     # Did the user click the window close button?
@@ -211,3 +212,4 @@ while running:
 
 # Done! Time to quit.
 pygame.quit()
+
