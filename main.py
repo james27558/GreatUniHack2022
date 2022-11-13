@@ -45,17 +45,22 @@ class Rubbish:
                                self.circle_radius * 2)
 
 class Bin:
-    def __init__(self, x_pos, y_pos, screen, type, image_path, scale=1.0, bin_type_image_path=""):
+    def __init__(self, x_pos, y_pos, screen, type, image_path, scale=1.0, scale_both_images=True,
+                 bin_type_image_path=""):
         self.screen = screen
         self.x_pos = x_pos
         self.y_pos = y_pos
 
         self.type = type
         self.scale = scale
+        self.scale_both_images = scale_both_images
 
         self.image_path = image_path
         self.image = pygame.image.load(self.image_path)
-        self.image = pygame.transform.scale(self.image, (100 * self.scale, 100 * self.scale))
+        if self.scale_both_images:
+            self.image = pygame.transform.scale(self.image, (100 * self.scale, 100 * self.scale))
+        else:
+            self.image = pygame.transform.scale(self.image, (100, 100))
 
         self.bin_type_image_path = bin_type_image_path
         self.bin_type_image = None
@@ -70,11 +75,14 @@ class Bin:
     def draw(self):
         self.bounding_box = self.screen.blit(self.image, (self.x_pos, self.y_pos))
 
+        # If an image to indicate the type of item that should go in this bin has been given, then try and place the
+        # bin type image in the center of the bin on the screen
         if self.bin_type_image is not None:
             center_pos = self.bounding_box.center
             bin_image_dimensions = self.bin_type_image.get_size()
-            self.screen.blit(self.bin_type_image, (center_pos[0] - (bin_image_dimensions[0]/2), center_pos[0] - (
+            self.screen.blit(self.bin_type_image, (center_pos[0] - (bin_image_dimensions[0]/2), center_pos[1] - (
                     bin_image_dimensions[1]/2)))
+
 
     def get_rect(self):
         """
@@ -111,105 +119,5 @@ class Score:
         img = self.font.render("Score: {}".format(self.score), True, (0, 0, 0))
         self.screen.blit(img, (self.x_pos, self.y_pos))
 
-pygame.init()
 
-# Set up the drawing window
-screen = pygame.display.set_mode([780, 640])
-
-# Run until the user asks to quit
-running = True
-currently_dragging = False
-obj_being_dragged = None
-
-all_rubbish = [Rubbish(screen, 100, 100, 0, 1, image_path="bottle.png"),
-               Rubbish(screen, 100, 200, 1, 1, image_path="bottle.png"),
-               Rubbish(screen, 300, 250, 0, 1),
-               Rubbish(screen, 250, 300, 0, 1)]
-
-all_bins = [Bin(300,300,screen, 0, "bin.png", bin_type_image_path="bottle.png")]
-
-# Variables used for dragging rubbish
-offset_x, offset_y = 0, 0
-
-score = Score(screen, 0, 0)
-
-while running:
-    # Did the user click the window close button?
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-
-        # If one of the mouse buttons has been pressed down
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # If it was the left mouse button
-            if event.button == 1:
-                # Check to see if the cursor is over a draggable rubbish object
-                for rubbish in all_rubbish:
-                    # Check if the current rubbish is draggable and if the mouse cursor is over the current rubbish's
-                    # bounding box
-                    if rubbish.draggable and rubbish.get_rect().collidepoint(event.pos):
-                        currently_dragging = True
-                        obj_being_dragged = rubbish
-
-                        mouse_x, mouse_y = event.pos
-                        # Record the offset between the rubbish's position and the mouse
-                        offset_x = rubbish.x_pos - mouse_x
-                        offset_y = rubbish.y_pos - mouse_y
-                        break
-
-        elif event.type == pygame.MOUSEBUTTONUP:
-            # If the left mouse button has been released then drop the rubbish being currently dragged
-            if event.button == 1:
-                currently_dragging = False
-                obj_being_dragged = None
-
-        elif event.type == pygame.MOUSEMOTION:
-            # While the mouse is moving and a rubbish object is being dragged, move the rubbish object with it
-            if currently_dragging:
-                # Since offset_x and offset_y are fixed values (until we drop the piece of rubbish) we can just sum
-                # the current mouse position and the offset between the mouse and rubbish position
-                mouse_x, mouse_y = event.pos
-                obj_being_dragged.x_pos = mouse_x + offset_x
-                obj_being_dragged.y_pos = mouse_y + offset_y
-
-    # Fill the background with white
-    screen.fill((255, 255, 255))
-
-    # Draw all rubbish
-    for rubbish in all_rubbish:
-        rubbish.draw()
-
-    # Draw all bins
-    for bin in all_bins:
-        bin.draw()
-
-    # Draw the score
-    score.draw()
-
-    # Check if any rubbish is colliding with any bin, if so, destroy it and change the score
-    for bin in all_bins:
-        rubbish_index_to_delete = -1
-
-        # Iterate through the rubbish and check if any collide with this bin
-        for rubbish_index, rubbish in enumerate(all_rubbish):
-            if bin.check_collision(rubbish.bounding_box):
-                rubbish_index_to_delete = rubbish_index
-
-                # Change the score according depending on whether the rubbish is in the correct bin
-                if bin.type == rubbish.type:
-                    score.incrementScore()
-                else:
-                    score.decrementScore()
-
-                break
-
-        # If a piece of rubbish does then destroy it
-        if rubbish_index_to_delete != -1:
-            del all_rubbish[rubbish_index_to_delete]
-
-    # Display it to the screen
-    pygame.display.flip()
-
-# Done! Time to quit.
-pygame.quit()
 
