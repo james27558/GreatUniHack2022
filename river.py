@@ -30,13 +30,13 @@ class River():
         elif rubbish_type == 1:
             self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 0, 1, image_path="can.png"), random.uniform(1,2)])
         elif rubbish_type == 2:
-            self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 1, 1.5, image_path="foodbox.png"), random.uniform(1,2)])
+            self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 1, 2, image_path="foodbox.png"), random.uniform(1,2)])
         elif rubbish_type == 3:
             self.rubbish_list.append([Rubbish(self.screen, random.randint(100, 620), random.randint(1, 10), 1, 1, image_path="leaves.png"), random.uniform(1,2)])
 
     def create_bin(self):
-        for i in range(2):
-            self.bin_list.append((Bin(150 + (75 * i), 550, self.screen, i, "bin.png", scale=0.75)))
+        self.bin_list.append((Bin(150, 550, self.screen, 0, "bin.png", scale=0.75)))
+        self.bin_list.append((Bin(225, 550, self.screen, 1, "regbin.png", scale=0.75)))
 
 
     # Draw falling rubbish
