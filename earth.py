@@ -126,12 +126,10 @@ def run_ocean():
 
 # Creating the beach background
 def create_beach_bg():
-    # Create the sea
-    sea = Rect(0, 0, 720, 280)
-    pygame.draw.rect(screen, "#2700ff", sea)
-    #
-    sand = Rect(0, 280, 720, 360)
-    pygame.draw.rect(screen, "#ffeb38", sand)
+    # Create the beach
+    img = pygame.image.load("beach.png")
+    img = pygame.transform.scale(img, (720, 640))
+    screen.blit(img, (0, 0))
 
 def run_beach():
     create_beach_bg()
