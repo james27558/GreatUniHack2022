@@ -7,6 +7,22 @@ from boat import Player
 from main import Rubbish, Score, Bin
 from river import River
 
+class BackButton:
+    def __init__(self, screen, x_pos, y_pos):
+        self.x_pos = x_pos
+        self.y_pos = y_pos
+        self.screen = screen
+        self.image = pygame.image.load("back.png")
+        self.image = pygame.transform.scale(self.image, (50, 50))
+        self.clicked = False
+        self.bounding_box = None
+
+    def does_mouse_overlap_button(self, mouse_x, mouse_y):
+        return self.bounding_box.collidepoint(mouse_x, mouse_y)
+
+    def draw(self):
+        self.bounding_box = self.screen.blit(self.image, (self.x_pos, self.y_pos))
+
 # Functions to run the different locations
 def run_ocean():
     clock = pygame.time.Clock()
@@ -59,6 +75,9 @@ def run_ocean():
     # Keep track of the score
     score = Score(screen, 0, 0)
 
+    # Add the back button
+    back = BackButton(screen, screen.get_width() - 50, screen.get_height() - 50)
+
     running = True
     while running:
         clock.tick(FPS)
@@ -96,6 +115,15 @@ def run_ocean():
                 if event.key == pygame.K_DOWN:
                     player.down_pressed = False
 
+            # If one of the mouse buttons has been pressed down, check if the user clicked the back button
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # If it was the left mouse button
+                if event.button == 1:
+                    mouse_x, mouse_y = event.pos
+                    # Stop the function if the back button is clicked
+                    if back.does_mouse_overlap_button(mouse_x, mouse_y):
+                        return
+
         # Draws the player(boat)
         player.draw(screen)
 
@@ -117,6 +145,9 @@ def run_ocean():
 
         # Draw the score to the screen
         score.draw()
+
+        # Draw the back button
+        back.draw()
 
         # Update the position of the boat
         player.update()
@@ -171,6 +202,9 @@ def run_beach():
 
     score = Score(screen, 0, 0)
 
+    # Add the back button
+    back = BackButton(screen, screen.get_width() - 50, screen.get_height() - 50)
+
     while running:
         pygame.display.set_caption("Clean the beach")
         # Did the user click the window close button?
@@ -182,6 +216,11 @@ def run_beach():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # If it was the left mouse button
                 if event.button == 1:
+                    mouse_x, mouse_y = event.pos
+                    # Stop the function if the back button is clicked
+                    if back.does_mouse_overlap_button(mouse_x, mouse_y):
+                        return
+
                     # Check to see if the cursor is over a draggable rubbish object
                     for rubbish in all_rubbish:
                         # Check if the current rubbish is draggable and if the mouse cursor is over the current rubbish's
@@ -246,6 +285,8 @@ def run_beach():
             if rubbish_index_to_delete != -1:
                 del all_rubbish[rubbish_index_to_delete]
 
+        back.draw()
+
         # Display it to the screen
         pygame.display.flip()
 
@@ -255,6 +296,9 @@ def run_river():
     pygame.display.set_caption("Clean the river")
     river.create_bin()
 
+    # Add the back button
+    back = BackButton(screen, screen.get_width() - 50, screen.get_height() - 50)
+
     running = True
     while running:
         river.draw_background()
@@ -262,6 +306,15 @@ def run_river():
         for event in pygame.event.get():
             if event.type == QUIT:
                 running = False
+
+            # If one of the mouse buttons has been pressed down, check if the user clicked the back button
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # If it was the left mouse button
+                if event.button == 1:
+                    mouse_x, mouse_y = event.pos
+                    # Stop the function if the back button is clicked
+                    if back.does_mouse_overlap_button(mouse_x, mouse_y):
+                        return
 
 
         # Move bin if arrow keys are pressed
@@ -301,6 +354,9 @@ def run_river():
             # If a piece of rubbish does then destroy it
             if rubbish_index_to_delete != -1:
                 del river.rubbish_list[rubbish_index_to_delete]
+
+        # Draw the back button
+        back.draw()
 
         pygame.display.flip()
         clock.tick(60)
