@@ -146,68 +146,68 @@ for x in range(rand.randint(15, 20)):
 # Keep track of the score
 score = Score(screen, 0, 0)
 
-# Run until the user asks to quit
-run = True
-while run:
-    clock.tick(FPS)
-    # Draws the scrolling background
-    for i in range(0, tiles):
-        screen.blit(bg, (i * bg_width + scroll, 0))
-
-    # Scrolls the background
-    scroll -= 2
-
-    # Resets scroll
-    if abs(scroll) > bg_width:
-        scroll = 0
-
-    # If button is pressed then true
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_LEFT:
-                player.left_pressed = True
-            if event.key == pygame.K_RIGHT:
-                player.right_pressed = True
-            if event.key == pygame.K_UP:
-                player.up_pressed = True
-            if event.key == pygame.K_DOWN:
-                player.down_pressed = True
-        if event.type == pygame.KEYUP:
-            if event.key == pygame.K_LEFT:
-                player.left_pressed = False
-            if event.key == pygame.K_RIGHT:
-                player.right_pressed = False
-            if event.key == pygame.K_UP:
-                player.up_pressed = False
-            if event.key == pygame.K_DOWN:
-                player.down_pressed = False
-
-    # Draws the player(boat)
-    player.draw(screen)
-
-    for rubbish in all_rubbish:
-        rubbish.draw()
-
-    #Iterate through the rubbish and check if any collide with the boat
-    rubbish_index_to_delete = -1
-    for rubbish_index, rubbish in enumerate(all_rubbish):
-        # Check collision with the boat
-        if player.bounding_box.colliderect(rubbish.bounding_box):
-            rubbish_index_to_delete = rubbish_index
-
-            score.incrementScore()
-
-    # If a piece of rubbish does then destroy it
-    if rubbish_index_to_delete != -1:
-        del all_rubbish[rubbish_index_to_delete]
-
-    # Draw the score to the screen
-    score.draw()
-
-    # Update the position of the boat
-    player.update()
-    pygame.display.flip()
-    pygame.display.update()
+# # Run until the user asks to quit
+# run = True
+# while run:
+#     clock.tick(FPS)
+#     # Draws the scrolling background
+#     for i in range(0, tiles):
+#         screen.blit(bg, (i * bg_width + scroll, 0))
+#
+#     # Scrolls the background
+#     scroll -= 2
+#
+#     # Resets scroll
+#     if abs(scroll) > bg_width:
+#         scroll = 0
+#
+#     # If button is pressed then true
+#     for event in pygame.event.get():
+#         if event.type == pygame.QUIT:
+#             pygame.quit()
+#             sys.exit()
+#         if event.type == pygame.KEYDOWN:
+#             if event.key == pygame.K_LEFT:
+#                 player.left_pressed = True
+#             if event.key == pygame.K_RIGHT:
+#                 player.right_pressed = True
+#             if event.key == pygame.K_UP:
+#                 player.up_pressed = True
+#             if event.key == pygame.K_DOWN:
+#                 player.down_pressed = True
+#         if event.type == pygame.KEYUP:
+#             if event.key == pygame.K_LEFT:
+#                 player.left_pressed = False
+#             if event.key == pygame.K_RIGHT:
+#                 player.right_pressed = False
+#             if event.key == pygame.K_UP:
+#                 player.up_pressed = False
+#             if event.key == pygame.K_DOWN:
+#                 player.down_pressed = False
+#
+#     # Draws the player(boat)
+#     player.draw(screen)
+#
+#     for rubbish in all_rubbish:
+#         rubbish.draw()
+#
+#     #Iterate through the rubbish and check if any collide with the boat
+#     rubbish_index_to_delete = -1
+#     for rubbish_index, rubbish in enumerate(all_rubbish):
+#         # Check collision with the boat
+#         if player.bounding_box.colliderect(rubbish.bounding_box):
+#             rubbish_index_to_delete = rubbish_index
+#
+#             score.incrementScore()
+#
+#     # If a piece of rubbish does then destroy it
+#     if rubbish_index_to_delete != -1:
+#         del all_rubbish[rubbish_index_to_delete]
+#
+#     # Draw the score to the screen
+#     score.draw()
+#
+#     # Update the position of the boat
+#     player.update()
+#     pygame.display.flip()
+#     pygame.display.update()

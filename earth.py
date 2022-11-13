@@ -1,12 +1,130 @@
 import pygame
 import sys
+import math
 import random as rand
 from pygame.locals import *
+from boat import Player
 from main import Rubbish, Score, Bin
 from river import River
 
 # Functions to run the different locations
+def run_ocean():
+    clock = pygame.time.Clock()
+    FPS = 60
+    SCREEN_WIDTH = 720
+    SCREEN_HEIGHT = 640
+    # Creating the player (boat) object
+    player = Player(SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
 
+    # Defining the boat variables
+
+    # Loading the boat background image
+    bg = pygame.image.load("bg.png").convert_alpha()
+    # Size of the background is set to the width and height of the screen
+    bg = pygame.transform.scale(bg, (SCREEN_WIDTH, SCREEN_HEIGHT))
+    bg_width = bg.get_width()
+    scroll = 0
+    tiles = math.ceil(720 / bg_width) + 1
+
+    facingRight = pygame.image.load('ship_RIGHT.png')
+    facingLeft = pygame.image.load('ship_LEFT.png')
+    facingUp = pygame.image.load('ship_UP.png')
+    facingDown = pygame.image.load('ship_DOWN.png')
+    facingUR = pygame.image.load('ship_UR.png')  # Image is facing up right
+    facingUL = pygame.image.load('ship_UL.png')  # Image is facing up left
+    facingDR = pygame.image.load('ship_DR.png')  # Image is facing down right
+    facingDL = pygame.image.load('ship_DL.png')  # Image is facing down left
+
+    # Generate and keep track of Rubbish
+    all_rubbish = []
+    for x in range(rand.randint(15, 20)):
+        random_type_number = rand.randint(0, 2)
+
+        random_type_image_path = ""
+        image_scale = 0.8
+        if random_type_number == 0:
+            random_type_image_path = "bottle.png"
+        if random_type_number == 1:
+            random_type_image_path = "glass bottle.png"
+            # image_scale = 0.8
+        if random_type_number == 2:
+            random_type_image_path = "general waste face mask.png"
+            image_scale = 1
+
+        all_rubbish.append(Rubbish(screen, rand.randint(0, SCREEN_WIDTH - 50), rand.randint(0, SCREEN_HEIGHT - 50),
+                                   random_type_number,
+                                   image_scale,
+                                   image_path=random_type_image_path))
+
+    # Keep track of the score
+    score = Score(screen, 0, 0)
+
+    running = True
+    while running:
+        clock.tick(FPS)
+        # Draws the scrolling background
+        for i in range(0, tiles):
+            screen.blit(bg, (i * bg_width + scroll, 0))
+
+        # Scrolls the background
+        scroll -= 2
+
+        # Resets scroll
+        if abs(scroll) > bg_width:
+            scroll = 0
+
+        # If button is pressed then true
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_LEFT:
+                    player.left_pressed = True
+                if event.key == pygame.K_RIGHT:
+                    player.right_pressed = True
+                if event.key == pygame.K_UP:
+                    player.up_pressed = True
+                if event.key == pygame.K_DOWN:
+                    player.down_pressed = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_LEFT:
+                    player.left_pressed = False
+                if event.key == pygame.K_RIGHT:
+                    player.right_pressed = False
+                if event.key == pygame.K_UP:
+                    player.up_pressed = False
+                if event.key == pygame.K_DOWN:
+                    player.down_pressed = False
+
+        # Draws the player(boat)
+        player.draw(screen)
+
+        for rubbish in all_rubbish:
+            rubbish.draw()
+
+        # Iterate through the rubbish and check if any collide with the boat
+        rubbish_index_to_delete = -1
+        for rubbish_index, rubbish in enumerate(all_rubbish):
+            # Check collision with the boat
+            if player.bounding_box.colliderect(rubbish.bounding_box):
+                rubbish_index_to_delete = rubbish_index
+
+                score.incrementScore()
+
+        # If a piece of rubbish does then destroy it
+        if rubbish_index_to_delete != -1:
+            del all_rubbish[rubbish_index_to_delete]
+
+        # Draw the score to the screen
+        score.draw()
+
+        # Update the position of the boat
+        player.update()
+        pygame.display.flip()
+        pygame.display.update()
+
+
+# Creating the beach background
 def create_beach_bg():
     # Create the sea
     sea = Rect(0, 0, 720, 280)
@@ -16,6 +134,7 @@ def create_beach_bg():
     pygame.draw.rect(screen, "#ffeb38", sand)
 
 def run_beach():
+    create_beach_bg()
     # Run until the user asks to quit
     running = True
     currently_dragging = False
@@ -55,6 +174,7 @@ def run_beach():
     score = Score(screen, 0, 0)
 
     while running:
+        pygame.display.set_caption("Clean the beach")
         # Did the user click the window close button?
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -134,15 +254,16 @@ def run_beach():
 def run_river():
     clock = pygame.time.Clock()
     river = River(screen)
+    pygame.display.set_caption("Clean the river")
     river.create_bin()
 
-    while True:
+    running = True
+    while running:
         river.draw_background()
 
         for event in pygame.event.get():
             if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
+                running = False
 
 
         # Move bin if arrow keys are pressed
@@ -220,6 +341,9 @@ def locations():
             and (mouse[1] >= coord[0][1]-15 and mouse[1] <= coord[0][1]+15):
         pygame.draw.circle(screen, darkRed, (coord[0][0], coord[0][1]), 15)
         screen.blit(oceanText, (360, 320))
+        if click[0] == 1:
+            run_ocean()
+
 
     # beach location
     if (mouse[0] >= coord[1][0]-15 and mouse[0] <= coord[1][0]+15)\
@@ -227,7 +351,6 @@ def locations():
         pygame.draw.circle(screen, darkRed, (coord[1][0], coord[1][1]), 15)
         screen.blit(beachText, (160, 260))
         if click[0] == 1:
-            create_beach_bg()
             run_beach()
 
     # river location
@@ -239,10 +362,13 @@ def locations():
             run_river()
 
 # Main program
+
+# Initalising the screen
 pygame.init()
 SIZE = 720, 640
 screen = pygame.display.set_mode(SIZE)
 
+# Run the game loop
 game = True
 while game:
     for event in pygame.event.get():
@@ -251,6 +377,7 @@ while game:
 
     screen.fill((0, 0, 0))
     create_earth()
+    pygame.display.set_caption("Earth")
     locations()
     pygame.display.flip()
 
